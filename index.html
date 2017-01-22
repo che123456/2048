@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>2048</title>
+		<script src="js/mui.min.js"></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<style type="text/css">
+			* {
+				padding: 0;
+				margin: 0;
+			}
+			
+			.box {
+				padding: 2%;
+				box-sizing: border-box;
+				width: 95%;
+				height: 400px;
+				background: #bbada0;
+				border-radius: 15px;
+				margin: 50px auto 0;
+				position: relative;
+				z-index: 1;
+			}
+			
+			.box .page {
+				position: relative;
+				height: 80px;
+				margin-bottom: 20px;
+				width: 100%;
+			}
+			
+			.box .page .block_mb, .box .page .block {
+				width: 23.5%;
+				height: 80px;
+				border-radius: 5px;
+				position: absolute;
+				text-align: center;
+				line-height: 80px;
+				font-size: 36px;
+				font-weight: bold;
+			}
+			
+			.box .page .block_mb {
+				background: #ccc0b3;
+			}
+			
+			.box .page .block_mb:nth-child(2) {
+				left: 25.5%;
+			}
+			
+			.box .page .block_mb:nth-child(3) {
+				left: 51%;
+			}
+			
+			.box .page .block_mb:nth-child(4) {
+				left: 76.5%;
+			}
+			
+			.ac {
+				color: #fff !important;
+			}
+			
+			.mui-btn {
+				left: 50%;
+				top: 80%;
+				transform: translateX(-50%);
+				margin-top: 20px;
+			}
+			.mui-text-center{
+				position: relative;
+			}
+			.jia{
+				position: absolute;
+				top: 0;
+				right: 20%;
+				opacity: 0.8;
+				transition: all 0.5;
+				color: #888;
+			}
+		</style>
+		<script type="text/javascript" charset="utf-8">
+			mui.init({
+				gestureConfig: {
+					tap: true, //默认为true
+					doubletap: true, //默认为false
+					longtap: true, //默认为false
+					swipe: true, //默认为true
+					drag: true, //默认为true
+					hold: false, //默认为false，不监听
+					release: false //默认为false，不监听
+				}
+			})			
+		</script>
+	</head>
+
+	<body>
+		<div class="mui-bar mui-bar-nav">
+			<h1 class="mui-text-center">2048</h1>
+		</div>
+		<div class="mui-content">
+			<h1 class="mui-text-center" style="margin-top: 20px;">得分:<span class="score">0</span><span class="jia" style="font-size: 20px;"></span></h1>
+			<a href="javascript:;" class="mui-btn">重新开始</a>
+			<div class="box"></div>
+		</div>
+	</body>
+	<script src="js/jquery-1.12.0.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		$(function() {
+			var data = [
+				[0, 0, 0, 0],
+				[0, 0, 0, 0],
+				[0, 0, 0, 0],
+				[0, 0, 0, 0]
+			];
+			var arr = [];
+			var up, down, left, right, dataNum;
+			numLayout();
+
+			function numLayout() {
+				arr = [];
+				$(".box .page").remove();
+				for(var i = 0; i < 4; i++) {
+					var page = $("<div class='page page" + i + "'></div>")
+					for(var j = 0; j < 4; j++) {
+						var block_mb = $("<div class='block_mb block_mb" + j + "'></div>");
+						block_mb.text(data[i][j]);
+						var mb_num = block_mb.text();
+						if(mb_num == 2) {
+							block_mb.css({
+								"background": "#eee4da",
+								"color": "#776e65"
+							})
+						} else if(mb_num == 4) {
+							block_mb.css({
+								"background": "#ede0c8",
+								"color": "#776e65"
+							})
+						} else if(mb_num == 8) {
+							block_mb.css({
+								"background": "#f2b179",
+								"color": "#fff"
+							})
+						} else if(mb_num == 16) {
+							block_mb.css({
+								"background": "#f59563",
+								"color": "#fff"
+							})
+						} else if(mb_num == 32) {
+							block_mb.css({
+								"background": "#f67e5f",
+								"color": "#fff"
+							})
+						} else if(mb_num == 64) {
+							block_mb.css({
+								"background": "#f65e3b",
+								"color": "#fff"
+							})
+						} else if(mb_num == 128) {
+							block_mb.css({
+								"background": "#f67e9f",
+								"color": "#fff"
+							})
+						} else if(mb_num == 256) {
+							block_mb.css({
+								"background": "#edcf72",
+								"color": "#fff"
+							})
+						} else if(mb_num >= 512) {
+							block_mb.css({
+								"background": "#edcf92",
+								"color": "#fff"
+							})
+						} else if(mb_num == 0) {
+							block_mb.text("");
+							var ij = [i, j];
+							arr.push(ij)
+							block_mb.addClass("abc");
+						}
+						page.append(block_mb);
+					}
+					$(".box").append(page);
+				}
+			}
+			randomNum();
+
+			function randomNum() {
+				var a = sjs(100);
+				var b = sjs(100);
+				a = a > 60 ? a = 4 : a = 2;
+				b = b > 60 ? b = 4 : b = 2;
+				var abc_length = arr.length;
+				if(abc_length > 0) {
+					var c = sjs(abc_length) - 1;
+					var d = sjs(abc_length) - 1;
+				} else {
+					return;
+				}
+
+				if(c == d) {
+					d = sjs(abc_length) - 1;
+				}
+				if(abc_length>14){
+					data[arr[c][0]].splice(arr[c][1], 1, a)
+					data[arr[d][0]].splice(arr[d][1], 1, b)
+				}else{
+				data[arr[c][0]].splice(arr[c][1], 1, a)
+					
+				}
+				numLayout();
+				console.log(JSON.stringify(arr))
+				console.log(JSON.stringify(data))
+			}
+
+			function sjs(num) {
+				var sjs = Math.ceil(Math.random() * num);
+				return sjs
+			}
+			//上
+			function upData() {
+				console.log(JSON.stringify(arr))
+				console.log(JSON.stringify(data))
+				var num = 0;
+				for(var i = 3; i >= 1; i--) {
+					for(var j = 3; j >= 0; j--) {
+						if(data[i][j] == data[i - 1][j] || data[i - 1][j] == 0) {
+							num = data[i][j] + data[i - 1][j];
+							data[i - 1].splice(j, 1, num);
+							data[i].splice(j, 1, 0);
+							up = false;
+						} else {
+							up = true;
+						}
+					}
+				}
+				defeated();
+				numLayout();
+				randomNum();
+				score()
+			}
+			//下
+			function downData() {
+				console.log(JSON.stringify(arr))
+				console.log(JSON.stringify(data))
+				var num = 0;
+				for(var i = 0; i <= 2; i++) {
+					for(var j = 0; j <= 3; j++) {
+						if(data[i][j] == data[i + 1][j] || data[i + 1][j] == 0) {
+							num = data[i][j] + data[i + 1][j];
+							data[i + 1].splice(j, 1, num)
+							data[i].splice(j, 1, 0)
+							down = false;
+						} else {
+							down = true;
+						}
+					}
+				}
+				defeated();
+				numLayout();
+				randomNum();
+				score()
+			}
+			//左
+			function leftData() {
+				console.log(JSON.stringify(arr))
+				console.log(JSON.stringify(data))
+				var num = 0;
+				for(var i = 0; i <= 3; i++) {
+					for(var j = 0; j <= 2; j++) {
+						if(data[i][j] == data[i][j + 1] || data[i][j] == 0) {
+							num = data[i][j] + data[i][j + 1];
+							data[i].splice(j, 1, num);
+							data[i].splice(j + 1, 1, 0);
+							left = false;
+						} else {
+							left = true;
+						}
+					}
+				}
+				defeated();
+				numLayout();
+				randomNum();
+				score()
+			}
+			//右
+			function rightData() {
+				console.log(JSON.stringify(arr))
+				console.log(JSON.stringify(data))
+				var num = 0;
+				for(var i = 0; i <= 3; i++) {
+					for(var j = 3; j >= 1; j--) {
+						if(data[i][j] == data[i][j - 1] || data[i][j] == 0) {
+							num = data[i][j] + data[i][j - 1];
+							data[i].splice(j, 1, num);
+							data[i].splice(j - 1, 1, 0);
+							right = false;
+						} else {
+							right = true;
+						}
+					}
+				}
+				defeated();
+				numLayout();
+				randomNum();
+				score()
+			}
+			$(".mui-btn").click(function() {
+				data = [
+					[0, 0, 0, 0],
+					[0, 0, 0, 0],
+					[0, 0, 0, 0],
+					[0, 0, 0, 0]
+				]
+				numLayout();
+				score();
+				randomNum();
+			})
+
+			function score() {
+				var df = 0;
+				var scdf = $(".score").text();
+				for(var i = 0; i <= 3; i++) {
+					for(var j = 0; j <= 3; j++) {
+						df += data[i][j];
+						if(data[i][j] == 0) {
+							dataNum = false;
+						} else {
+							dataNum = true;
+						}
+					}
+				}
+				console.log(dataNum)
+					//				if(df*5==scdf){
+					//					alert("失败")
+					//		}
+					var jia=df*4-scdf;
+					console.log(jia)
+					if(jia>0){
+						$(".jia").show();
+						$(".jia").html("+"+jia);
+						$(".jia").css("opacity","1")
+						setTimeout(function(){
+							$(".jia").hide();
+							$(".jia").css("opacity","0")
+						},500)
+					}
+				$(".score").text(df*4);
+			}
+
+addEventListener("swipeleft",function(){
+	     leftData();
+	});
+	addEventListener("swiperight",function(){
+	     rightData();
+	});
+	addEventListener("swipeup",function(){
+	     upData();
+	});
+	addEventListener("swipedown",function(){
+	     downData();
+	});
+			function defeated() {
+				if(arr.length == 0) {}
+			}
+			document.onkeydown = grabEvent;
+			document.onirkeypress = grabEvent;
+			document.onsystemevent = grabEvent;
+
+			function grabEvent() {
+				var key_code = event.which;
+				switch(key_code) {
+					case 38:
+						upData()
+						return false;
+						break;
+					case 40:
+						downData()
+						return false;
+						break;
+					case 37:
+						leftData()
+						return false;
+						break;
+					case 39:
+						rightData()
+						return false;
+						break;
+				}
+
+			}
+		})
+	</script>
+
+</html>
